@@ -100,29 +100,23 @@ fn main() -> anyhow::Result<()> {
     let bos = tokenizer.bos_id().expect("no BOS id") as i32;
 
     let prompt = "test";
-    println!("prompt: {:?}", prompt);
     let prompt_encoded: Vec<_> = iter::once(bos)
         .chain(tokenizer.encode(prompt)?.into_iter().map(|e| e.id as i32))
         .collect();
-    println!("prompt_encoded: {:?}", prompt_encoded);
     let prompt_size = prompt_encoded.len();
-    println!("prompt_size: {:?}", prompt_size);
     let prompt_tensor: Tensor<B, 1, Int> =
         Tensor::from_ints(&prompt_encoded[..], &Default::default());
-    println!("prompt_tensor: {:?}", prompt_tensor);
     // TESTING SITE
     let mut h = model
         .embeddings
         .forward(prompt_tensor.unsqueeze_dim(0))
         .squeeze::<2>(0);
-    println!("embeddings: {:?}", h);
 
     let mut to_concat = Vec::new();
     for seqlen in [2] {
         to_concat.push(model.freqs_cis.clone().slice([0..seqlen]));
     }
     let freqs_cis = Tensor::cat(to_concat, 0);
-    println!("freqs_cis: {:?}", freqs_cis);
 
     h = model.layers[0]
         .attention

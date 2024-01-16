@@ -43,6 +43,8 @@ impl<B: Backend> Attention<B> {
             2,
         )
         .flatten(1, 2);
+
+        println!("key after {} repeats: {}", N_HEADS / N_KV_HEADS, keys);
         let values: Tensor<B, 3> = Tensor::stack::<4>(
             [(); N_HEADS / N_KV_HEADS]
                 .into_iter()
@@ -53,7 +55,7 @@ impl<B: Backend> Attention<B> {
         .flatten(1, 2);
 
         // attention
-        let scale = (xq.dims()[2] as f64).powf(-0.5);
+        let scale = (HEAD_DIM as f64).powf(-0.5);
         let query = xq * scale;
         let attention = query.matmul(keys.swap_dims(1, 2));
         let attention = softmax(attention, 2);
